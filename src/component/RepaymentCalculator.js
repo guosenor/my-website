@@ -1,5 +1,6 @@
-import React from 'react';
-import { Form, Input, Button, Row, Col,DatePicker,List } from 'antd';
+import React, { useState } from 'react';
+import Decimal from 'decimal.js'
+import { Form, InputNumber, Button, Row, Col, DatePicker, List } from 'antd';
 function RepaymentCalculator() {
     const layout = {
         labelCol: { span: 6 },
@@ -9,34 +10,56 @@ function RepaymentCalculator() {
         wrapperCol: { offset: 5, span: 10 },
     };
     const [form] = Form.useForm();
-    const list =[{
-        day:'2014-01',
-        principal:1000,
-        interest:2000,
-        amount:1000000
-    }];
+    const [list, setList] = useState([]);
 
     const onFinish = values => {
-        console.log(list.length);
-        list.push({
-            day:'2014-01',
-            principal:1000,
-            interest:2000,
-            amount:1000000
-        });
-        
+        const { amount, interestRate, repayment, day } = values;
+        const list = [];
+        let all = amount;
+        while (all > 0) {
+            let principal, interest
+            if (all > repayment) {
+                interest = new Decimal(all).mul(new Decimal(interestRate).div(new Decimal(100))).toFixed(2);
+                principal = new Decimal(repayment).sub(new Decimal(interest)).toFixed(2);
+                if (principal < 0) {
+                    break;
+                }
+                all = new Decimal(all).sub(new Decimal(principal)).toFixed(2)
+            } else {
+                interest = new Decimal(all).mul(new Decimal(interestRate).div(new Decimal(100))).toFixed(2);
+                principal = new Decimal(all).sub(new Decimal(interest)).toFixed(2);
+                all = 0
+            }
+            list.push({
+                day: day.format("YYYY-M"),
+                principal,
+                interest,
+                amount: all
+            })
+            day.add(1, 'M')
+        }
+        setList(list)
     };
     return (
         <div>
             <Form {...layout} form={form} name="control-hooks" onFinish={onFinish}>
-                <Form.Item name="amount" label="贷款余额"  rules={[{ required: true,message:'请输入贷款余额' }]}>
-                    <Input placeholder='元' />
+                <Form.Item name="amount" label="贷款余额" rules={[{ required: true, message: '请输入贷款余额' }]}>
+                    <InputNumber min={10000} placeholder='元' />
                 </Form.Item>
-                <Form.Item name="repayment" label="月还款额"  rules={[{ required: true,message:'请输入月还款额' }]}>
-                    <Input placeholder='元' />
+                <Form.Item name="interestRate" label="利率" rules={[{ required: true, message: '请输入利率' }]}>
+                    <InputNumber
+                        defaultValue={3.25}
+                        min={1}
+                        placeholder="利率"
+                        formatter={value => `${value}%`}
+                        parser={value => value.replace('%', '')}
+                    />
                 </Form.Item>
-                <Form.Item name='day' label="还款日" rules={[{ required: true ,message:'请选择还款日'}]}>
-                <DatePicker />
+                <Form.Item name="repayment" label="月还款额" rules={[{ required: true, message: '请输入月还款额' }]}>
+                    <InputNumber min={0} placeholder='元' />
+                </Form.Item>
+                <Form.Item name='day' label="还款日" rules={[{ required: true, message: '请选择还款日' }]}>
+                    <DatePicker />
                 </Form.Item>
                 <Form.Item {...tailLayout} >
                     <Button type="primary" htmlType='submit'>
@@ -48,24 +71,24 @@ function RepaymentCalculator() {
                 <List
                     dataSource={list}
                     renderItem={item => (
-                         // <List.Item>
-                            <Row>
-                                <Col xs={24} sm={24} md={24} lg={5} >
-                                    <span><b>{item.day}</b></span>
-                                </Col>
-                                <Col xs={24} sm={24} md={24} lg={6} >
-                                    <span>本金:{item.principal}</span>
-                                </Col>
-                                <Col xs={24} sm={24} md={24} lg={6} >
-                                    <span>利息:{item.interest}</span>
-                                </Col>
-                                <Col xs={24} sm={24} md={24} lg={7} >
-                                    <span>余额:{item.amount}</span>
-                                </Col>
-                            </Row>
-                         // </List.Item>
-                        )}
-                    />
+                        // <List.Item>
+                        <Row>
+                            <Col xs={24} sm={24} md={24} lg={5} >
+                                <span><b>{item.day}</b></span>
+                            </Col>
+                            <Col xs={24} sm={24} md={24} lg={6} >
+                                <span>本金:{item.principal}</span>
+                            </Col>
+                            <Col xs={24} sm={24} md={24} lg={6} >
+                                <span>利息:{item.interest}</span>
+                            </Col>
+                            <Col xs={24} sm={24} md={24} lg={7} >
+                                <span>余额:{item.amount}</span>
+                            </Col>
+                        </Row>
+                        // </List.Item>
+                    )}
+                />
             </div>
         </div>
 
