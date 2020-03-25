@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Decimal from 'decimal.js'
 import { Form, InputNumber, Button, Row, Col, DatePicker, List } from 'antd';
+import zhCN from 'antd/es/date-picker/locale/zh_CN'; 
+
 function RepaymentCalculator() {
     const layout = {
         labelCol: { span: 6 },
@@ -11,6 +13,7 @@ function RepaymentCalculator() {
     };
     const [form] = Form.useForm();
     const [list, setList] = useState([]);
+    const [totalInterest, seTotalInterest] = useState(0);
 
     const onFinish = values => {
         const { amount, interestRate, repayment, day } = values;
@@ -38,7 +41,12 @@ function RepaymentCalculator() {
             })
             day.add(1, 'M')
         }
+        let totalInterest = new Decimal(0);
+        list.forEach(item=>{
+            totalInterest= totalInterest.add(new Decimal(item.interest)) 
+        });
         setList(list)
+        seTotalInterest(totalInterest.toFixed(2))
     };
     return (
         <div>
@@ -59,7 +67,7 @@ function RepaymentCalculator() {
                     <InputNumber min={0} placeholder='元' />
                 </Form.Item>
                 <Form.Item name='day' label="还款日" rules={[{ required: true, message: '请选择还款日' }]}>
-                    <DatePicker />
+                    <DatePicker locale={zhCN}  />
                 </Form.Item>
                 <Form.Item {...tailLayout} >
                     <Button type="primary" htmlType='submit'>
@@ -68,6 +76,12 @@ function RepaymentCalculator() {
                 </Form.Item>
             </Form>
             <div>
+            {
+              totalInterest>0&&
+              <b>
+                   总利息:{totalInterest}
+              </b>
+            }
                 <List
                     dataSource={list}
                     renderItem={item => (
