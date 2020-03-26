@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Decimal from 'decimal.js'
 import { Form, InputNumber, Button, Row, Col, DatePicker, List } from 'antd';
 import zhCN from 'antd/es/date-picker/locale/zh_CN'; 
 
-function RepaymentCalculator() {
-    const layout = {
-        labelCol: { span: 6 },
-        wrapperCol: { span: 16 },
-    };
-    const tailLayout = {
-        wrapperCol: { offset: 5, span: 10 },
-    };
-    const [list, setList] = useState([]);
-    const [totalInterest, seTotalInterest] = useState(0);
-    const [repaymentCount, setRepaymentCount] = useState(0);
-
-    const onFinish = values => {
+class RepaymentCalculator1 extends React.Component{
+    constructor(props){
+        super(props);
+        this.state={
+            list:[],
+            repaymentCount:0,
+            totalInterest:0
+        };
+        this.layout = {
+            labelCol: { span: 6 },
+            wrapperCol: { span: 16 },
+        };
+         this.tailLayout = {
+            wrapperCol: { offset: 5, span: 10 },
+        };
+    }
+    onFinish = (values)=>{
         const { amount, interestRate, repayment, day } = values;
         const list = [];
         let all = amount;
@@ -45,13 +49,14 @@ function RepaymentCalculator() {
         list.forEach(item=>{
             totalInterest= totalInterest.add(new Decimal(item.interest)) 
         });
-        setList(list)
-        setRepaymentCount(list.length)
-        seTotalInterest(totalInterest.toFixed(2))
+        this.setState({list:list})
+        this.setState({repaymentCount:list.length})
+        this.setState({totalInterest:totalInterest.toFixed(2)})
     };
-    return (
-        <div>
-            <Form {...layout} name="control-hooks" onFinish={onFinish}>
+    render(){
+        return (
+            <div>
+            <Form {...this.layout}  name="control-hooks" onFinish={this.onFinish}>
                 <Form.Item name="amount" label="贷款余额" rules={[{ required: true, message: '请输入贷款余额' }]}>
                     <InputNumber min={10000} placeholder='元' />
                 </Form.Item>
@@ -70,7 +75,7 @@ function RepaymentCalculator() {
                 <Form.Item name='day' label="还款日" rules={[{ required: true, message: '请选择还款日' }]}>
                     <DatePicker locale={zhCN}  />
                 </Form.Item>
-                <Form.Item {...tailLayout} >
+                <Form.Item {...this.tailLayout} >
                     <Button type="primary" htmlType='submit'>
                         计算
               </Button>
@@ -78,21 +83,21 @@ function RepaymentCalculator() {
             </Form>
             <div>
             {
-              repaymentCount>0&&
+              this.state.repaymentCount>0&&
               <b>
-                   总期数:{repaymentCount}
+                   总期数:{this.state.repaymentCount}
               </b>
             }
             <br/>
             {
-              totalInterest>0&&
+              this.state.totalInterest>0&&
               <b>
-                   总利息:{totalInterest}
+                   总利息:{this.state.totalInterest}
               </b>
             }
                  
                 <List
-                    dataSource={list}
+                    dataSource={this.state.list}
                     renderItem={item => (
                         // <List.Item>
                         <Row>
@@ -115,6 +120,7 @@ function RepaymentCalculator() {
             </div>
         </div>
 
-    );
+        )
+    }
 }
-export default RepaymentCalculator
+export default RepaymentCalculator1
