@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Decimal from 'decimal.js'
 import { Form, InputNumber, Button, Row, Col, DatePicker, List } from 'antd';
 import zhCN from 'antd/es/date-picker/locale/zh_CN'; 
+import moment from 'moment';
 
 function RepaymentCalculator() {
     const layout = {
@@ -17,6 +18,7 @@ function RepaymentCalculator() {
 
     const onFinish = values => {
         const { amount, interestRate, repayment, day } = values;
+        const everyMouth = new moment(day)
         const list = [];
         let all = amount;
         while (all > 0) {
@@ -34,12 +36,12 @@ function RepaymentCalculator() {
                 all = 0
             }
             list.push({
-                day: day.format("YYYY-M"),
+                day: everyMouth.format("YYYY-M"),
                 principal,
                 interest,
                 amount: all
             })
-            day.add(1, 'M')
+            everyMouth.add(1, 'M')
         }
         let totalInterest = new Decimal(0);
         list.forEach(item=>{
